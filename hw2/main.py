@@ -16,61 +16,49 @@ op.add_option("-r",
               dest="relevance_feedback", action="store_true", default=False,
               help="turn on the relevance feedback in program.")
 op.add_option("-i",
-              dest="QUERY_PATH", default="./queries",
+              dest="QUERY_PATH", default="queries/query-jacky.xml",
               help="The input query file.")
 op.add_option("-o",
               dest="OUTPUT_PATH", type=str,  default="./output/output.csv",
               help="The output ranked list file.")
-op.add_option("-m",
-              dest="MODEL_PATH", default="model",
-              help="The input model directory")
 op.add_option("-d", 
 			  dest="NTCIR_PATH", type=str, default="./CIRB010",
               help="The directory of NTCIR documents.")
-
-op.add_option("-t", 
-			  dest="consider_title", action="store_true", default=False,
-              help="Consider query's title.")
-
-op.add_option("-q", 
-			  dest="consider_quesion", action="store_true", default=False,
-              help="Consider query's quesion.")
-
-op.add_option("-n", 
-			  dest="consider_narrative", action="store_true", default=False,
-              help="Consider query's narrative.")
-
-op.add_option("-c", 
-			  dest="consider_concept", action="store_true", default=False,
-              help="Consider query's concept.")
-
+op.add_option("-m",
+              dest="MODEL_PATH", default="model",
+              help="The input model directory")
 (opts, args) = op.parse_args()
 
 
 #mode = "TRAIN"
-#mode = "TEST"
-mode = "DEBUG"
+mode = "TEST"
+#mode = "DEBUG"
 
 if mode == "TRAIN":
-	QUERY_TRAIN_PATH = os.path.join(opts.QUERY_PATH, 'query-train.xml')
+	QUERY_TRAIN_PATH = os.path.join(opts.QUERY_PATH)
 	training_num = 10
+	rank_num = 100 # extract top-n files to rank and output
+
 if mode == "TEST":
-	QUERY_TRAIN_PATH = os.path.join(opts.QUERY_PATH, 'query-test.xml')
+	QUERY_TRAIN_PATH = os.path.join(opts.QUERY_PATH)
 	training_num = 20
+	rank_num = 100 # extract top-n files to rank and output
 
 if mode == "DEBUG":
-	QUERY_TRAIN_PATH = os.path.join(opts.QUERY_PATH, 'query-jacky.xml')
-	training_num = 2
+	QUERY_TRAIN_PATH = os.path.join(opts.QUERY_PATH)
+	training_num = 1
+	rank_num = 10 # extract top-n files to rank and output
 
 #vector_type = "bigram" # (unigram, bigram)
-rank_num = 100 # extract top-n files to rank and output
+
 
 def main():
+
 	"""Entry Point"""
 	tStart = time.time()
 
-	raw_queries = parseData(training_num, QUERY_TRAIN_PATH)
-	IR = InfoRetrieval(raw_queries, rank_num, opts.OUTPUT_PATH)
+	(raw_queries, complete_contents) = parseData(training_num, QUERY_TRAIN_PATH)
+	IR = InfoRetrieval(complete_contents, raw_queries, rank_num, opts)
 	IR.run()
 
 	tEnd = time.time()
